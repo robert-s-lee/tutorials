@@ -24,6 +24,8 @@ from monai.data import decollate_batch
 from monai.handlers import ROCAUC, StatsHandler, TensorBoardStatsHandler, stopping_fn_from_metric
 from monai.transforms import Activations, AddChanneld, AsDiscrete, Compose, LoadImaged, RandRotate90d, Resized, ScaleIntensityd, EnsureTyped, EnsureType
 
+import configargparse
+from configargparse import ArgumentDefaultsHelpFormatter
 
 def main():
     monai.config.print_config()
@@ -31,7 +33,7 @@ def main():
 
     # IXI dataset as a demo, downloadable from https://brain-development.org/ixi-dataset/
     # the path of ixi IXI-T1 dataset
-    data_path = os.sep.join(["", "workspace", "data", "medical", "ixi", "IXI-T1"])
+    data_path = os.sep.join([".", "workspace", "data", "medical", "ixi", "IXI-T1"])
     images = [
         "IXI314-IOP-0889-T1.nii.gz",
         "IXI249-Guys-1072-T1.nii.gz",
@@ -120,7 +122,7 @@ def main():
     train_tensorboard_stats_handler.attach(trainer)
 
     # set parameters for validation
-    validation_every_n_epochs = 1
+    validation_every_n_epochs = args.val_interval
 
     metric_name = "AUC"
     # add evaluation metric to the evaluator engine
@@ -163,10 +165,18 @@ def main():
     train_ds = monai.data.Dataset(data=train_files, transform=train_transforms)
     train_loader = DataLoader(train_ds, batch_size=2, shuffle=True, num_workers=4, pin_memory=torch.cuda.is_available())
 
-    train_epochs = 30
+    train_epochs = args.max_epochs
     state = trainer.run(train_loader, train_epochs)
     print(state)
 
 
 if __name__ == "__main__":
+    global args
+    parser = configargparse.ArgParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add('--data_dir', help='MONAI data dir', default=".", env_var='MONAI_DATA_DIRECTORY')  
+    parser.add('--max_epochs', help='Number of epochs', type=int, default=30, env_var='MONAI_MAX_EPOCHS')  
+    parser.add('--val_interval', help='Eval for best metric on epoch interval', type=int, default=1)  
+    parser.add('--log_dir', help='Tensorboard log dir', default=None, env_var='MONAI_TB_DIR')  
+    args = parser.parse_args()      
+    if args.max_epochs < args.val_interval: args.val_interval = args.max_epochs 
     main()

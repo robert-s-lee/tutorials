@@ -27,6 +27,8 @@ from monai.metrics import DiceMetric
 from monai.networks.nets import UNet
 from monai.transforms import Activations, AddChannel, AsDiscrete, Compose, SaveImage, ScaleIntensity, EnsureType
 
+import configargparse
+from configargparse import ArgumentDefaultsHelpFormatter
 
 def main(tempdir):
     config.print_config()
@@ -87,5 +89,10 @@ def main(tempdir):
 
 
 if __name__ == "__main__":
-    with tempfile.TemporaryDirectory() as tempdir:
+    global args
+    parser = configargparse.ArgParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add('--log_dir', help='Tensorboard log dir', default=None, env_var='MONAI_TB_DIR')  
+    parser.add('--temp_dir', help='Temp dir', default=None, env_var='MONAI_TEMP_DIR')  
+    args = parser.parse_args()
+    with tempfile.TemporaryDirectory(dir=args.temp_dir) as tempdir:
         main(tempdir)

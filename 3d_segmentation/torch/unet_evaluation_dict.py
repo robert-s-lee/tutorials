@@ -28,6 +28,8 @@ from monai.metrics import DiceMetric
 from monai.networks.nets import UNet
 from monai.transforms import Activations, AsChannelFirstd, AsDiscrete, Compose, LoadImaged, SaveImage, ScaleIntensityd, EnsureTyped, EnsureType
 
+import configargparse
+from configargparse import ArgumentDefaultsHelpFormatter
 
 def main(tempdir):
     monai.config.print_config()
@@ -63,7 +65,7 @@ def main(tempdir):
     post_trans = Compose([EnsureType(), Activations(sigmoid=True), AsDiscrete(threshold_values=True)])
     saver = SaveImage(output_dir="./output", output_ext=".nii.gz", output_postfix="seg")
     # try to use all the available GPUs
-    devices = get_devices_spec(None)
+    devices = [torch.device("cuda" if torch.cuda.is_available() else "cpu")]
     model = UNet(
         dimensions=3,
         in_channels=1,
@@ -101,5 +103,11 @@ def main(tempdir):
 
 
 if __name__ == "__main__":
-    with tempfile.TemporaryDirectory() as tempdir:
+    global args
+    parser = configargparse.ArgParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add('--data_dir', help='MONAI data dir', default=".", env_var='MONAI_DATA_DIRECTORY')  
+    parser.add('--max_epochs', help='Number of epochs', type=int, default=5, env_var='MONAI_MAX_EOPCHS')  
+    parser.add('--temp_dir', help='Temp dir', default=None, env_var='MONAI_TEMP_DIR')  
+    args = parser.parse_args()   
+    with tempfile.TemporaryDirectory(dir=args.temp_dir) as tempdir:
         main(tempdir)

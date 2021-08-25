@@ -45,7 +45,7 @@ def validation(args):
         device = torch.device(f"cuda:{local_rank}")
         torch.cuda.set_device(device)
     else:
-        device = torch.device("cuda")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     properties, val_loader = get_data(args, mode="validation")
     net = get_network(properties, task_id, val_output_dir, checkpoint)

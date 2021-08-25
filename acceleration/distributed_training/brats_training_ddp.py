@@ -52,7 +52,7 @@ Some codes are taken from https://github.com/pytorch/examples/blob/master/imagen
 
 """
 
-import argparse
+import configargparse
 import os
 import sys
 import time
@@ -223,7 +223,7 @@ def main_worker(args):
 
     if dist.get_rank() == 0:
         # Logging for TensorBoard
-        writer = SummaryWriter(log_dir=args.log_dir)
+        writer = SummaryWriter(f'{args.log_dir}/accel/ddp/torch')
 
     # create UNet, DiceLoss and Adam optimizer
     device = torch.device(f"cuda:{args.local_rank}")
@@ -360,7 +360,7 @@ def evaluate(model, data_loader, device):
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = configargparse.ArgumentParser()
     parser.add_argument("-d", "--dir", default="./testdata", type=str, help="directory of Brain Tumor dataset.")
     # must parse the command-line argument: ``--local_rank=LOCAL_PROCESS_RANK``, which will be provided by DDP
     parser.add_argument("--local_rank", type=int, help="node rank for distributed training")
@@ -387,7 +387,7 @@ def main():
     parser.add_argument("--cache_rate", type=float, default=1.0)
     parser.add_argument("--val_interval", type=int, default=5)
     parser.add_argument("--network", type=str, default="UNet", choices=["UNet", "SegResNet"])
-    parser.add_argument("--log_dir", type=str, default=None)
+    parser.add('--log_dir', help='Tensorboard log dir', default=None, env_var='MONAI_TB_DIR')  
     args = parser.parse_args()
 
     if args.seed is not None:

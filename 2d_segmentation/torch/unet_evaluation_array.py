@@ -26,6 +26,7 @@ from monai.metrics import DiceMetric
 from monai.networks.nets import UNet
 from monai.transforms import Activations, AddChannel, AsDiscrete, Compose, LoadImage, SaveImage, ScaleIntensity, EnsureType
 
+import jsonargparse
 
 def main(tempdir):
     config.print_config()
@@ -81,5 +82,11 @@ def main(tempdir):
 
 
 if __name__ == "__main__":
-    with tempfile.TemporaryDirectory() as tempdir:
+    global args
+    parser = jsonargparse.ArgumentParser(env_prefix='MONAI', default_env=True)
+    parser.add_argument('--data_directory', help='MONAI data dir', default=".") #, env_var='MONAI_DATA_DIRECTORY')  
+    parser.add_argument('--max_epochs', help='Number of epochs', type=int, default=5) #, env_var='MONAI_MAX_EOPCHS')  
+    parser.add_argument('--temp_dir', help='Temp dir', default=None) #, env_var='MONAI_TEMP_DIR')  
+    args = parser.parse_args()    
+    with tempfile.TemporaryDirectory(dir=args.temp_dir) as tempdir:
         main(tempdir)

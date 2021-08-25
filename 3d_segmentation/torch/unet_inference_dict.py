@@ -37,6 +37,8 @@ from monai.transforms import (
     EnsureTyped,
 )
 
+import configargparse
+from configargparse import ArgumentDefaultsHelpFormatter
 
 def main(tempdir):
     print_config()
@@ -110,5 +112,10 @@ def main(tempdir):
 
 
 if __name__ == "__main__":
-    with tempfile.TemporaryDirectory() as tempdir:
+    global args
+    parser = configargparse.ArgParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add('--log_dir', help='Tensorboard log dir', default=None, env_var='MONAI_TB_DIR')  
+    parser.add('--temp_dir', help='Temp dir', default=None, env_var='MONAI_TEMP_DIR')  
+    args = parser.parse_args()
+    with tempfile.TemporaryDirectory(dir=args.temp_dir) as tempdir:
         main(tempdir)

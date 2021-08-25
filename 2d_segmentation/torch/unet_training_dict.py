@@ -38,6 +38,8 @@ from monai.transforms import (
 )
 from monai.visualize import plot_2d_or_3d_image
 
+import configargparse
+from configargparse import ArgumentDefaultsHelpFormatter
 
 def main(tempdir):
     monai.config.print_config()
@@ -114,15 +116,15 @@ def main(tempdir):
     optimizer = torch.optim.Adam(model.parameters(), 1e-3)
 
     # start a typical PyTorch training
-    val_interval = 2
+    val_interval = args.val_interval
     best_metric = -1
     best_metric_epoch = -1
     epoch_loss_values = list()
     metric_values = list()
-    writer = SummaryWriter()
-    for epoch in range(10):
+    writer = SummaryWriter(f'{args.log_dir}/2d_seg/dict/torch')
+    for epoch in range(args.max_epochs):
         print("-" * 10)
-        print(f"epoch {epoch + 1}/{10}")
+        print(f"epoch {epoch + 1}/{args.max_epochs}")
         model.train()
         epoch_loss = 0
         step = 0
@@ -182,5 +184,14 @@ def main(tempdir):
 
 
 if __name__ == "__main__":
-    with tempfile.TemporaryDirectory() as tempdir:
+    global args
+    parser = configargparse.ArgParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add('--data_dir', help='MONAI data dir', default=".", env_var='MONAI_DATA_DIRECTORY')  
+    parser.add('--max_epochs', help='Number of epochs', type=int, default=30, env_var='MONAI_MAX_EPOCHS')  
+    parser.add('--val_interval', help='Eval for best metric on epoch interval', type=int, default=2)  
+    parser.add('--log_dir', help='Tensorboard log dir', default=None, env_var='MONAI_TB_DIR')  
+    parser.add('--temp_dir', help='Temp dir', default=None, env_var='MONAI_TEMP_DIR')  
+    args = parser.parse_args()
+    if args.max_epochs < args.val_interval: args.val_interval = args.max_epochs     
+    with tempfile.TemporaryDirectory(dir=args.temp_dir)) as tempdir:
         main(tempdir)

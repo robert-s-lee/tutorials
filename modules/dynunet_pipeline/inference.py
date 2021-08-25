@@ -36,7 +36,7 @@ def inference(args):
         device = torch.device(f"cuda:{local_rank}")
         torch.cuda.set_device(device)
     else:
-        device = torch.device("cuda")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     properties, test_loader = get_data(args, mode="test")
 

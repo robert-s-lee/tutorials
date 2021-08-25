@@ -23,6 +23,8 @@ from monai.data import decollate_batch
 from monai.metrics import ROCAUCMetric
 from monai.transforms import Activations, AddChanneld, AsDiscrete, Compose, LoadImaged, RandRotate90d, Resized, ScaleIntensityd, EnsureTyped, EnsureType
 
+import configargparse
+from configargparse import ArgumentDefaultsHelpFormatter
 
 def main():
     monai.config.print_config()
@@ -30,7 +32,7 @@ def main():
 
     # IXI dataset as a demo, downloadable from https://brain-development.org/ixi-dataset/
     # the path of ixi IXI-T1 dataset
-    data_path = os.sep.join(["", "workspace", "data", "medical", "ixi", "IXI-T1"])
+    data_path = os.sep.join([".", "workspace", "data", "medical", "ixi", "IXI-T1"])
     images = [
         "IXI314-IOP-0889-T1.nii.gz",
         "IXI249-Guys-1072-T1.nii.gz",
@@ -105,13 +107,13 @@ def main():
     auc_metric = ROCAUCMetric()
 
     # start a typical PyTorch training
-    val_interval = 2
+    val_interval = args.val_interval
     best_metric = -1
     best_metric_epoch = -1
-    writer = SummaryWriter()
-    for epoch in range(5):
+    writer = SummaryWriter(f'{args.log_dir}/3d_class/dict/torch')
+    for epoch in range(args.max_epochs):
         print("-" * 10)
-        print(f"epoch {epoch + 1}/{5}")
+        print(f"epoch {epoch + 1}/{args.max_epochs}")
         model.train()
         epoch_loss = 0
         step = 0
@@ -164,4 +166,12 @@ def main():
 
 
 if __name__ == "__main__":
+    global args
+    parser = configargparse.ArgParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add('--data_dir', help='MONAI data dir', default=".", env_var='MONAI_DATA_DIRECTORY')  
+    parser.add('--max_epochs', help='Number of epochs', type=int, default=30, env_var='MONAI_MAX_EPOCHS')  
+    parser.add('--val_interval', help='Eval for best metric on epoch interval', type=int, default=2)  
+    parser.add('--log_dir', help='Tensorboard log dir', default=None, env_var='MONAI_TB_DIR')  
+    args = parser.parse_args()  
+    if args.max_epochs < args.val_interval: args.val_interval = args.max_epochs 
     main()

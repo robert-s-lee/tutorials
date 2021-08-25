@@ -45,6 +45,16 @@ in a cell will verify this has worked and show you what kind of hardware you hav
 
 Some notebooks will require additional data. They can be downloaded by running the [runexamples.sh](./runexamples.sh) script.
 
+```bash
+export MONAI_DATA_DIRECTORY=./
+export MONAI_MAX_EPOCHS=3
+export MONAI_TB_DIR=./lightning_logs/monai
+export MONAI_TEMP_DIR=./
+./runexamples.sh
+```
+
+This will create 
+
 ### 2. Questions and bugs
 
 - For questions relating to the use of MONAI, please us our [Discussions tab](https://github.com/Project-MONAI/MONAI/discussions) on the main repository of MONAI.

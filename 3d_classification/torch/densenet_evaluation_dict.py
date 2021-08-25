@@ -21,6 +21,8 @@ import monai
 from monai.data import CSVSaver
 from monai.transforms import AddChanneld, Compose, LoadImaged, Resized, ScaleIntensityd, EnsureTyped
 
+import configargparse
+from configargparse import ArgumentDefaultsHelpFormatter
 
 def main():
     monai.config.print_config()
@@ -28,7 +30,7 @@ def main():
 
     # IXI dataset as a demo, downloadable from https://brain-development.org/ixi-dataset/
     # the path of ixi IXI-T1 dataset
-    data_path = os.sep.join(["", "workspace", "data", "medical", "ixi", "IXI-T1"])
+    data_path = os.sep.join([".", "workspace", "data", "medical", "ixi", "IXI-T1"])
     images = [
         "IXI607-Guys-1097-T1.nii.gz",
         "IXI175-HH-1570-T1.nii.gz",
@@ -85,4 +87,10 @@ def main():
 
 
 if __name__ == "__main__":
+    global args
+    parser = configargparse.ArgParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add('--data_dir', help='MONAI data dir', default=".", env_var='MONAI_DATA_DIRECTORY')  
+    parser.add('--max_epochs', help='Number of epochs', type=int, default=30, env_var='MONAI_MAX_EPOCHS')  
+    parser.add('--tb_dir', help='Tensorboard dir', default="", env_var='MONAI_TB_DIR')  
+    args = parser.parse_args()  
     main()

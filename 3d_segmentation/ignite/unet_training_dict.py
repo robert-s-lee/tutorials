@@ -49,6 +49,8 @@ from monai.transforms import (
     EnsureType,
 )
 
+import configargparse
+from configargparse import ArgumentDefaultsHelpFormatter
 
 def main(tempdir):
     monai.config.print_config()
@@ -229,15 +231,24 @@ def main(tempdir):
         global_iter_transform=lambda x: trainer.state.epoch,
     )
     evaluator.add_event_handler(
-        event_name=Events.ITERATION_COMPLETED(every=2),
+        event_name=Events.ITERATION_COMPLETED(every=args.val_interval),
         handler=val_tensorboard_image_handler,
     )
 
-    train_epochs = 5
+    train_epochs = args.max_epochs
     state = trainer.run(train_loader, train_epochs)
     print(state)
 
 
 if __name__ == "__main__":
-    with tempfile.TemporaryDirectory() as tempdir:
+    global args
+    parser = configargparse.ArgParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add('--data_dir', help='MONAI data dir', default=".", env_var='MONAI_DATA_DIRECTORY')  
+    parser.add('--max_epochs', help='Number of epochs', type=int, default=5, env_var='MONAI_MAX_EPOCHS')  
+    parser.add('--val_interval', help='Eval for best metric on epoch interval', type=int, default=2)  
+    parser.add('--log_dir', help='Tensorboard log dir', default=None, env_var='MONAI_TB_DIR')  
+    parser.add('--temp_dir', help='Temp dir', default=None, env_var='MONAI_TEMP_DIR')  
+    args = parser.parse_args()      
+    if args.max_epochs < args.val_interval: args.val_interval = args.max_epochs    
+    with tempfile.TemporaryDirectory(dir=args.temp_dir) as tempdir:
         main(tempdir)

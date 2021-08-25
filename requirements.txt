@@ -4,3 +4,4 @@ autopep8
 jupytext
 autoflake
 tensorboard>=2.4.0
+jsonargparse[all]

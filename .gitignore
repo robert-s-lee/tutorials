@@ -138,3 +138,21 @@ tests/testing_data/*Hippocampus*
 # Ignore torch saves
 */torch/runs
 logs
+
+# tensorboard
+runs/*
+lightning_logs/*
+
+# checkpoint files
+runs_*/*
+out/*
+output/*
+temp.txt
+tempdir/*
+
+# datafiles
+workspace/*
+testing_ixi*.gz
+lightning_logs
+events.out.tfevents.*
+
